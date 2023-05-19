@@ -60,6 +60,8 @@ def lambda_handler(event, context):
         }
     # Manual addition or removal of tags
     elif str(event['resource']) == "/api/images/change/tags" and str(event['httpMethod']) == "POST":
+        
+        
         return {
             'statusCode': 200,
             'headers': {
@@ -73,11 +75,11 @@ def lambda_handler(event, context):
     # Delete an image (Need to add error checking)
     elif str(event['resource']) == "/api/images" and str(event['httpMethod']) == "DELETE":
             # Delete from table
-            response = table.scan(
+            records_to_delete = table.scan(
                 FilterExpression='image = :value',
                 ExpressionAttributeValues={':value': event['queryStringParameters']['image_url']}
                 )
-            for item in response['Items']:
+            for item in records_to_delete['Items']:
                 key = {'id': item['id']}
                 table.delete_item(Key=key)
             return {

@@ -29,7 +29,7 @@ def lambda_handler(event, context):
     
             if all(tag in image_tags.keys() for tag in tags.keys()):
                 if all(image_tags[tag] >= tags[tag] for tag in tags.keys()):
-                    result.append(dbRecord["image"])
+                    result.append(dbRecord["image_url"])
         
         return {
             'statusCode': 200,
@@ -76,7 +76,7 @@ def lambda_handler(event, context):
     elif str(event['resource']) == "/api/images" and str(event['httpMethod']) == "DELETE":
             # Delete from table
             records_to_delete = table.scan(
-                FilterExpression='image = :value',
+                FilterExpression='image_url = :value',
                 ExpressionAttributeValues={':value': event['queryStringParameters']['image_url']}
                 )
             for item in records_to_delete['Items']:

@@ -20,16 +20,19 @@ def lambda_handler(event, context):
             tags[tagBundle['tag']] = tagBundle['count'] if "count" in tagBundle else 1
 
         for dbRecord in dbRecords:
-            image_tags = {}
-            for object in dbRecord['objects']:
-                if object['label'] in image_tags:
-                    image_tags[object['label']] += 1
-                else:
-                    image_tags[object['label']] = 1
+
+            # Don't need this anymore, will be handled by db schema
+            # image_tags = {}
+            # for object in dbRecord['objects']:
+            #     if object['label'] in image_tags:
+            #         image_tags[object['label']] += 1
+            #     else:
+            #         image_tags[object['label']] = 1
     
-            if all(tag in image_tags.keys() for tag in tags.keys()):
-                if all(image_tags[tag] >= tags[tag] for tag in tags.keys()):
-                    result.append(dbRecord["image_url"])
+            for dbRecord in dbRecords:
+                if all(tag in dbRecord["objects"].keys() for tag in tags.keys()):
+                    if all(dbRecord["objects"][tag] >= tags[tag] for tag in tags.keys()):
+                        result.append(dbRecord["image_url"])
         
         return {
             'statusCode': 200,

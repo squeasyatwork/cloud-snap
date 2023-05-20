@@ -101,7 +101,7 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Credentials': 'true',
             'Content-Type': 'application/json'
         }}
-    # Delete an image (Need to add error checking)
+    # Delete an image (Need to add error checking and removal from S3)
     elif str(event['resource']) == "/api/images" and str(event['httpMethod']) == "DELETE":
             # Delete from table
             records_to_delete = table.scan(

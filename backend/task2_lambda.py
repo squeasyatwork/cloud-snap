@@ -16,6 +16,7 @@ def lambda_handler(event, context):
         result = []
         tags = {}
     
+        # Change how tags are structured from [{"tag": "sample1", "count": 1},{"tag": "sample2", "count": 2}] to {sample1: 1, sample2: 2}
         for tagBundle in tagBundles:
             tags[tagBundle['tag']] = tagBundle['count'] if "count" in tagBundle else 1
 
@@ -29,6 +30,7 @@ def lambda_handler(event, context):
             #     else:
             #         image_tags[object['label']] = 1
     
+            # Iterate through records in the database and find records which are a superset of the input and have a count >= to each tag in the input 
             for dbRecord in dbRecords:
                 if all(tag in dbRecord["objects"].keys() for tag in tags.keys()):
                     if all(dbRecord["objects"][tag] >= tags[tag] for tag in tags.keys()):

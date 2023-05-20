@@ -2,7 +2,6 @@
 # Use this for testing by changing dbRecords and requestBody
 
 def modify_image_tags(dbRecords, requestBody):
-    
     tagBundles = requestBody["tags"]
     tags = {}
     for tagBundle in tagBundles:

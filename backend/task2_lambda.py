@@ -16,25 +16,13 @@ def lambda_handler(event, context):
         result = []
         tags = {}
     
-        # Change how tags are structured from [{"tag": "sample1", "count": 1},{"tag": "sample2", "count": 2}] to {sample1: 1, sample2: 2}
         for tagBundle in tagBundles:
             tags[tagBundle['tag']] = tagBundle['count'] if "count" in tagBundle else 1
 
         for dbRecord in dbRecords:
-
-            # Don't need this anymore, will be handled by db schema
-            # image_tags = {}
-            # for object in dbRecord['objects']:
-            #     if object['label'] in image_tags:
-            #         image_tags[object['label']] += 1
-            #     else:
-            #         image_tags[object['label']] = 1
-    
-            # Iterate through records in the database and find records which are a superset of the input and have a count >= to each tag in the input 
-            for dbRecord in dbRecords:
-                if all(tag in dbRecord["objects"].keys() for tag in tags.keys()):
-                    if all(dbRecord["objects"][tag] >= tags[tag] for tag in tags.keys()):
-                        result.append(dbRecord["image_url"])
+            if all(tag in dbRecord["objects"].keys() for tag in tags.keys()):
+                if all(dbRecord["objects"][tag] >= tags[tag] for tag in tags.keys()):
+                    result.append(dbRecord["image_url"])
         
         return {
             'statusCode': 200,
@@ -65,7 +53,45 @@ def lambda_handler(event, context):
         }
     # Manual addition or removal of tags
     elif str(event['resource']) == "/api/images/change/tags" and str(event['httpMethod']) == "POST":
+        requestBody = json.loads(event['body'])
+        tagBundles = requestBody['tags']
         
+        tags = {}
+
+        # Change how tags are structured from [{"tag": "sample1", "count": 1},{"tag": "sample2", "count": 2}] to {sample1: 1, sample2: 2}
+        for tagBundle in tagBundles:
+            tags[tagBundle['tag']] = tagBundle['count'] if "count" in tagBundle else 1
+
+        # Identify which record needs to be modified
+        record_to_modify = table.scan(
+                FilterExpression='image_url = :value',
+                ExpressionAttributeValues={':value': requestBody['url']}
+                )
+
+        mode = requestBody["type"]
+        # Removal of tags
+        if mode == 0:
+            for tag in tags.keys():
+                if tag in record_to_modify["Items"][0]["objects"]:
+                    # Subtract based on user input upto zero
+                    record_to_modify["Items"][0]["objects"][tag] = max(record_to_modify["Items"][0]["objects"][tag] - tags[tag], 0)
+                    # If zero counts of the tag exists, remove it
+                    if record_to_modify["Items"][0]["objects"][tag] == 0:
+                        record_to_modify["Items"][0]["objects"].pop(tag)
+        # Addition of tags
+        elif mode == 1:
+            for tag in tags.keys():
+                if tag in record_to_modify["Items"][0]["objects"]:
+                    pass
+                    record_to_modify["Items"][0]["objects"][tag] += tags[tag]
+                else:
+                    record_to_modify["Items"][0]["objects"][tag] = tags[tag]
+                    
+        table.update_item(
+        Key={'id': record_to_modify["Items"][0]['id']},
+        UpdateExpression='SET objects = :objects',
+        ExpressionAttributeValues={':objects': record_to_modify["Items"][0]['objects']}
+        )
         
         return {
             'statusCode': 200,
@@ -74,9 +100,7 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
             'Access-Control-Allow-Credentials': 'true',
             'Content-Type': 'application/json'
-        },
-        'body': "Manual addition or removal of tags"
-        }
+        }}
     # Delete an image (Need to add error checking)
     elif str(event['resource']) == "/api/images" and str(event['httpMethod']) == "DELETE":
             # Delete from table

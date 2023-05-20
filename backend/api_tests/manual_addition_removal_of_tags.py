@@ -4,23 +4,28 @@
 def modify_image_tags(dbRecords, requestBody):
     tagBundles = requestBody["tags"]
     tags = {}
+
+    # Change how tags are structured from [{"tag": "sample1", "count": 1},{"tag": "sample2", "count": 2}] to {sample1: 1, sample2: 2}
     for tagBundle in tagBundles:
         tags[tagBundle['tag']] = tagBundle['count'] if "count" in tagBundle else 1
 
+    # Identify which record needs to be modified
     record_to_modify = {}
     for dbRecord in dbRecords:
         if dbRecord["image_url"] == requestBody["url"]:
             record_to_modify = dbRecord
 
     mode = requestBody["type"]
-
+    # Removal of tags
     if mode == 0:
         for tag in tags.keys():
             if tag in record_to_modify["objects"]:
+                # Subtract based on user input upto zero
                 record_to_modify["objects"][tag] = max(record_to_modify["objects"][tag] - tags[tag], 0)
+                # If zero counts of the tag exists, remove it
                 if record_to_modify["objects"][tag] == 0:
                     record_to_modify["objects"].pop(tag)
-    
+    # Addition of tags
     elif mode == 1:
         for tag in tags.keys():
             if tag in record_to_modify["objects"]:

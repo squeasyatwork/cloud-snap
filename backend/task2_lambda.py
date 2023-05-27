@@ -1,5 +1,11 @@
 import simplejson as json
 import boto3
+import base64
+import numpy as np
+import sys
+import time
+import cv2
+import os
 
 def lambda_handler(event, context):
     # Connecting to images table
@@ -25,7 +31,7 @@ def lambda_handler(event, context):
                     result.append(dbRecord["image_url"])
         
         return {
-            'statusCode': 200,
+            'statusCode': 201,
             'headers': {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
@@ -38,18 +44,23 @@ def lambda_handler(event, context):
     elif str(event['resource']) == "/api/images/search/image" and str(event['httpMethod']) == "POST":
         
         # Get image tags
+        requestBody = json.loads(event['body'])
+        id = requestBody["id"]
+        image = requestBody["image"]
+        
         
         # Copy code from previous if statement
         
+        
         return {
-            'statusCode': 200,
+            'statusCode': 201,
             'headers': {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
             'Access-Control-Allow-Credentials': 'true',
             'Content-Type': 'application/json'
         },
-        'body': "Find images based on the tags of an image"
+        'body': str(image)
         }
     # Manual addition or removal of tags
     elif str(event['resource']) == "/api/images/change/tags" and str(event['httpMethod']) == "POST":
@@ -94,25 +105,34 @@ def lambda_handler(event, context):
         )
         
         return {
-            'statusCode': 200,
+            'statusCode': 201,
             'headers': {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
             'Access-Control-Allow-Credentials': 'true',
             'Content-Type': 'application/json'
         }}
-    # Delete an image (Need to add error checking and removal from S3)
+    # Delete an image (Need to add error checking)
     elif str(event['resource']) == "/api/images" and str(event['httpMethod']) == "DELETE":
+            image_url = event['queryStringParameters']['image_url']
+            
             # Delete from table
             records_to_delete = table.scan(
                 FilterExpression='image_url = :value',
-                ExpressionAttributeValues={':value': event['queryStringParameters']['image_url']}
+                ExpressionAttributeValues={':value': image_url}
                 )
             for item in records_to_delete['Items']:
                 key = {'id': item['id']}
                 table.delete_item(Key=key)
+            
+            s3 = boto3.client('s3')
+            image_url_tokens = image_url.split("/")
+            s3.delete_object(Bucket=image_url_tokens[-2], Key=image_url_tokens[-1]) 
+            
+            
+            
             return {
-                'statusCode': 200,
+                'statusCode': 204,
                 'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',

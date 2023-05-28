@@ -7,29 +7,33 @@ import time
 import cv2
 import os
 
+# Lambda function
 def lambda_handler(event, context):
-    # Connecting to images table
+    # Connecting to images table and retrieving records
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('images')
     body = table.scan()
     dbRecords = body['Items']
     
-    # Find images based on the tags
+    # Find images based on the tags by handling API requests
     if str(event['resource']) == "/api/images/search/tags" and str(event['httpMethod']) == "POST":
         requestBody = json.loads(event['body'])
         tagBundles = requestBody['tags']
         
         result = []
         tags = {}
-    
+        
+        # Creating a dictionary of tags and their counts
         for tagBundle in tagBundles:
             tags[tagBundle['tag']] = tagBundle['count'] if "count" in tagBundle else 1
-
+        
+        # Filtering images based on the provided tags
         for dbRecord in dbRecords:
             if all(tag in dbRecord["objects"].keys() for tag in tags.keys()):
                 if all(dbRecord["objects"][tag] >= tags[tag] for tag in tags.keys()):
                     result.append(dbRecord["image_url"])
         
+        # Returning the search results as a JSON response
         return {
             'statusCode': 201,
             'headers': {
@@ -40,7 +44,7 @@ def lambda_handler(event, context):
         },
         'body': json.dumps({"links": result})
         }
-    # Find images based on the tags of an image
+    # Find images based on the tags of an image by handling API requests
     elif str(event['resource']) == "/api/images/search/image" and str(event['httpMethod']) == "POST":
         
         # Get image tags
@@ -51,7 +55,7 @@ def lambda_handler(event, context):
         
         # Copy code from previous if statement
         
-        
+        # Returning the image tags as a JSON response
         return {
             'statusCode': 201,
             'headers': {

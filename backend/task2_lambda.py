@@ -97,7 +97,6 @@ def lambda_handler(event, context):
         elif mode == 1:
             for tag in tags.keys():
                 if tag in record_to_modify["Items"][0]["objects"]:
-                    pass
                     record_to_modify["Items"][0]["objects"][tag] += tags[tag]
                 else:
                     record_to_modify["Items"][0]["objects"][tag] = tags[tag]

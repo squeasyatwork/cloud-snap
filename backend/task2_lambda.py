@@ -131,7 +131,7 @@ def lambda_handler(event, context):
         
         tags = {}
         for obj in objects:
-            if obj["accuracy"] > 0.6:
+            if obj["accuracy"] >= 0.6:
                 if obj["label"] not in tags:
                     tags[obj["label"]] = 1
                 else:
@@ -217,7 +217,7 @@ def lambda_handler(event, context):
             
             s3 = boto3.client('s3')
             image_url_tokens = image_url.split("/")
-            s3.delete_object(Bucket=image_url_tokens[-2], Key=image_url_tokens[-1]) 
+            s3.delete_object(Bucket=image_url_tokens[-2], Key=image_url_tokens[-1])
             
             return {
                 'statusCode': 204,

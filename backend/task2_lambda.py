@@ -5,6 +5,7 @@ import numpy as np
 import sys
 import time
 import cv2
+import copy
 
 def lambda_handler(event, context):
     # Connecting to images table
@@ -169,7 +170,10 @@ def lambda_handler(event, context):
                 FilterExpression='image_url = :value',
                 ExpressionAttributeValues={':value': requestBody['url']}
                 )
-
+                
+        # Record before modification
+        unmodified_record = copy.deepcopy(record_to_modify["Items"])
+        
         mode = requestBody["type"]
         # Removal of tags
         if mode == 0:
@@ -194,6 +198,14 @@ def lambda_handler(event, context):
         ExpressionAttributeValues={':objects': record_to_modify["Items"][0]['objects']}
         )
         
+        
+        # Record after modification
+        modified_record = table.scan(
+                FilterExpression='image_url = :value',
+                ExpressionAttributeValues={':value': requestBody['url']}
+                )["Items"]
+                
+        
         return {
             'statusCode': 200,
             'headers': {
@@ -201,7 +213,9 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
             'Access-Control-Allow-Credentials': 'true',
             'Content-Type': 'application/json'
-        }}
+        }, 
+            'body': json.dumps({"from": unmodified_record, "to": modified_record})
+        }
     # Delete an image (Need to add error checking)
     elif str(event['resource']) == "/api/images" and str(event['httpMethod']) == "DELETE":
             image_url = event['queryStringParameters']['image_url']

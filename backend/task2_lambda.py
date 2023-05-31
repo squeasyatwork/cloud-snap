@@ -10,7 +10,7 @@ import copy
 def lambda_handler(event, context):
     # Connecting to images table
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('images')
+    table = dynamodb.Table('images-table')
     body = table.scan()
     dbRecords = body['Items']
     
@@ -51,9 +51,10 @@ def lambda_handler(event, context):
         # image_id = str(uuid.uuid5(uuid.NAMESPACE_OID, image))
     
         s3 = boto3.client('s3')
-        LABELS = s3.get_object(Bucket="fit5225-assignment2", Key="yolo_tiny_configs/coco.names")["Body"].read().decode('utf-8').strip().split("\n")
-        s3.download_file("fit5225-assignment2", "yolo_tiny_configs/yolov3-tiny.cfg", "/tmp/yolov3-tiny.cfg")
-        s3.download_file("fit5225-assignment2", "yolo_tiny_configs/yolov3-tiny.weights", "/tmp/yolov3-tiny.weights")
+        yolo_bucket = "yolo-files-bucket-team-20"
+        LABELS = s3.get_object(Bucket=yolo_bucket, Key="coco.names")["Body"].read().decode('utf-8').strip().split("\n")
+        s3.download_file(yolo_bucket, "yolov3-tiny.cfg", "/tmp/yolov3-tiny.cfg")
+        s3.download_file(yolo_bucket, "yolov3-tiny.weights", "/tmp/yolov3-tiny.weights")
     
         decoded_data = base64.b64decode(image)
         np_data = np.fromstring(decoded_data,np.uint8)
@@ -154,17 +155,17 @@ def lambda_handler(event, context):
         },
         'body': json.dumps({"links": result})
         }
-    # Manual addition or removal of tags
+    # Manual addition or removal of tags    
     elif str(event['resource']) == "/api/images/change/tags" and str(event['httpMethod']) == "POST":
         requestBody = json.loads(event['body'])
         tagBundles = requestBody['tags']
         
         tags = {}
-
+    
         # Change how tags are structured from [{"tag": "sample1", "count": 1},{"tag": "sample2", "count": 2}] to {sample1: 1, sample2: 2}
         for tagBundle in tagBundles:
             tags[tagBundle['tag']] = tagBundle['count'] if "count" in tagBundle else 1
-
+    
         # Identify which record needs to be modified
         record_to_modify = table.scan(
                 FilterExpression='image_url = :value',
@@ -231,7 +232,7 @@ def lambda_handler(event, context):
             
             s3 = boto3.client('s3')
             image_url_tokens = image_url.split("/")
-            s3.delete_object(Bucket=image_url_tokens[-2], Key=image_url_tokens[-1])
+            s3.delete_object(Bucket=image_url_tokens[-2].strip(".s3.amazonaws.com"), Key=image_url_tokens[-1])
             
             return {
                 'statusCode': 204,

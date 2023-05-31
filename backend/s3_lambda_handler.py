@@ -7,23 +7,30 @@ import uuid
 from urllib.parse import unquote_plus
 
 def lambda_handler(event, context):
+    # Initialize AWS resources
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('images')
     s3 = boto3.client('s3')
     
+    # Process each record from the event
     for record in event['Records']:
+        # Get bucket and key information from the S3 event record
         bucket = record['s3']['bucket']['name']
         key = unquote_plus(record['s3']['object']['key'])
     
         # Image processing
+        # Read image from S3, encode it as base64, and get the image URL
         image = base64.b64encode(s3.get_object(Bucket=bucket, Key=key)["Body"].read()).decode("utf-8")
         image_url = "https://" + str(bucket) + ".s3.amazonaws.com/" + str(key)
+        # Generate a unique ID for the image
         image_id = str(uuid.uuid5(uuid.NAMESPACE_OID, image))
         
+        # Retrieve YOLO configuration and weights files from S3
         LABELS = s3.get_object(Bucket="fit5225-assignment2", Key="yolo_tiny_configs/coco.names")["Body"].read().decode('utf-8').strip().split("\n")
         s3.download_file("fit5225-assignment2", "yolo_tiny_configs/yolov3-tiny.cfg", "/tmp/yolov3-tiny.cfg")
         s3.download_file("fit5225-assignment2", "yolo_tiny_configs/yolov3-tiny.weights", "/tmp/yolov3-tiny.weights")
         
+        # Decode and process the image using OpenCV
         decoded_data = base64.b64decode(image)
         np_data = np.fromstring(decoded_data,np.uint8)
         img = cv2.imdecode(np_data,cv2.IMREAD_UNCHANGED)
@@ -31,7 +38,8 @@ def lambda_handler(event, context):
         npimg=np.array(img)
         image=npimg.copy()
         image=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-    
+        
+        # Load YOLO model using the configuration and weights files
         net = cv2.dnn.readNetFromDarknet("/tmp/yolov3-tiny.cfg", "/tmp/yolov3-tiny.weights")
         confthres = 0.3
         nmsthres = 0.1
@@ -89,16 +97,19 @@ def lambda_handler(event, context):
 
                 # apply non-maxima suppression to suppress weak, overlapping bounding boxes
                 idxs = cv2.dnn.NMSBoxes(boxes, confidences, confthres, nmsthres)
-
+                
+                # Initialize a list to store detected objects
                 objects = []
                 if len(idxs) > 0:
                     # loop over the indexes we are keeping
                     for i in idxs.flatten():
+                        # Create a dictionary for each detected object
                         objects.append(
                             {"label": LABELS[classIDs[i]], "accuracy": confidences[i], 
                             "rectangle": {"height": boxes[i][3], "left": boxes[i][0], "top": boxes[i][1], "width": boxes[i][2]}}
                             )
         
+        # Count the number of objects per label
         tags = {}
         for obj in objects:
             if obj["accuracy"] > 0.6:

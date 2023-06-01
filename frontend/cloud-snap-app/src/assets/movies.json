@@ -1,0 +1,18 @@
+[
+    {
+      "title": "Movie 1",
+      "genre": "Action",
+      "year": 2021
+    },
+    {
+      "title": "Movie 2",
+      "genre": "Comedy",
+      "year": 2019
+    },
+    {
+      "title": "Movie 3",
+      "genre": "Drama",
+      "year": 2020
+    }
+  ]
+  

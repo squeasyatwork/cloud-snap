@@ -1,0 +1,24 @@
+<h2>Image Upload</h2>
+<form (submit)="uploadImage()">
+  <div>
+    <label for="image">Select an image:</label>
+    <input type="file" id="image" name="image" accept="image/*" (change)="onFileSelected($event)"/>
+  </div>
+  <div>
+    <button type="submit">Upload</button>
+  </div>
+</form>
+<div class="image-search-container">
+  <label for="images">Output:</label>
+  <textarea id="images" name="images" rows="10" cols="30" [disabled]="true">{{ images }}</textarea>
+  <div class="image-list-container" *ngIf="images">
+    <ul class="image-list">
+      <li *ngFor="let image of images">
+        <div class="image-container">
+          <img [src]="image" alt="Image">
+          <label for="imageLabel">{{ image }}</label>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>

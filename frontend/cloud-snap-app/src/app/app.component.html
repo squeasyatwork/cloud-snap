@@ -1,0 +1,24 @@
+<nav>
+  <div class="nav-container">
+    <h2>Cloud Snap</h2>
+    <div class="action-container">
+      <a routerLink="/">Home</a>
+      <!-- <a routerLink="/register" routerLinkActive="active">Sign Up</a> -->
+      <!-- <a routerLink="/login" routerLinkActive="active">Sign In</a> -->
+      <a routerLink="/upload" routerLinkActive="active">Upload Image</a>
+      <a routerLink="/search" routerLinkActive="active">Search Image</a>
+      <a routerLink="/update-tag" routerLinkActive="active">Update Tags</a>
+      <a routerLink="/delete" routerLinkActive="active">Delete Image</a>
+    </div>
+  </div>
+  <div class="account-container" *ngIf="isLoggedIn; else loggedOut">
+    <label for="accountName" >account name</label>
+    <a routerLink="" (click)="logout()">Logout</a>
+  </div>
+  <ng-template #loggedOut>
+    <a routerLink="" (click)="login()">Login</a>
+  </ng-template>
+</nav>
+<div class="main-container">
+  <router-outlet></router-outlet>
+</div>

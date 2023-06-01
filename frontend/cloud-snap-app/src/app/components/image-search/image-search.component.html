@@ -1,0 +1,32 @@
+<h2>Image Search</h2>
+<form>
+  <div class="image-search-container">
+    <label for="tagSearch">Enter tags:</label>
+    <textarea [(ngModel)]="tags" id="tagSearch" name="tagSearch" rows="10" cols="30"></textarea>
+  </div>
+  <div>
+    <button type="submit" (click)="searchImageByTag()">Search</button>
+  </div>
+</form>
+<div class="image-search-container">
+  <label for="imagesFromTags">Output:</label>
+  <textarea id="imagesFromTags" name="imagesFromTags" rows="10" cols="30" [disabled]="true">{{ imagesFromTags }}</textarea>
+  <div class="image-list-container" *ngIf="imagesFromTags">
+    <ul class="image-list">
+      <li *ngFor="let image of imagesFromTags">
+        <div class="image-container">
+          <img [src]="image" alt="Image">
+          <label for="imageLabel">{{image}}</label>
+        </div>
+      </li>
+    </ul>
+    <!-- <div class="image-container">
+      <img src="https://fit5225-gr20-images.s3.amazonaws.com/000000007454.jpg"alt=""/>
+      <label for="imageLabel">https://fit5225-gr20-images.s3.amazonaws.com/000000007454.jpg</label>
+    </div>
+    <div class="image-container">
+      <img src="https://fit5225-gr20-images.s3.amazonaws.com/000000007454.jpg"alt=""/>
+      <label for="imageLabel">https://fit5225-gr20-images.s3.amazonaws.com/000000007454.jpg</label>
+    </div> -->
+  </div>
+</div>

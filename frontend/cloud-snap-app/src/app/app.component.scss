@@ -1,0 +1,45 @@
+// * {
+//     margin: 0;
+//     // padding: 5%;
+//     // display: flex;
+//     // align-items: center;
+//     // justify-content: center;
+// }
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+
+    .nav-container {
+        h2 {
+            margin: 0 40px 0 0;
+        }
+        display: flex;
+        align-items: center;
+    }
+    .action-container {
+        a {
+            color: black;
+            padding: 0 10px;
+        }
+    }
+
+    .account-container {
+        display: flex;
+
+        label {
+            margin-right: 10px;
+        }
+    }
+}
+
+.main-container {
+    // margin-top: 40px;
+    // background-color: cyan;
+    padding: 40px;
+
+    app-image-upload {
+        background-color: black;
+    }
+}

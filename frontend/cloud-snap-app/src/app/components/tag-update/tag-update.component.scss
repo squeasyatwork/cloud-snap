@@ -1,0 +1,20 @@
+.update-tag-container {
+    display: grid;
+
+    label {
+        margin-top: 10px;
+    }
+
+    textarea {
+        margin-bottom: 10px;
+    }
+
+    .output-container {
+        display: flex;
+        justify-content: space-between;
+
+        .json-container {
+            flex-flow: column;
+        }
+    }
+}

@@ -1,0 +1,11 @@
+<h2>Image Delete</h2>
+
+<form>
+  <div>
+    <label for="imageUrl">Image URL:</label>
+    <input [(ngModel)]="imageUrl" type="text" id="imageUrl" name="imageUrl">
+  </div>
+  <div>
+    <button type="submit" (click)="deleteImage()">Delete</button>
+  </div>
+</form>
